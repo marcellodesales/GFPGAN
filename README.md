@@ -187,7 +187,7 @@ nvidia-docker run \
 
 ### Training
 
-Follow training steps provided [here](##:computer:Training) until step 3.
+Follow training steps provided [here](#computer-training) until step 3.
 
 ```sh
 nvidia-docker run \
