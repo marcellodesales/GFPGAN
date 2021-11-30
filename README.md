@@ -181,6 +181,20 @@ nvidia-docker run \
     --name gfpgan \
     --volume <absolute/path/inputs>:/app/inputs \
     --volume <absolute/path/results>:/app/results \
+<<<<<<< HEAD
+    {{ DOCKERHUB_REPOSITORY }}/GFPGAN:latest \
+    python3 inference_gfpgan.py --model_path experiments/pretrained_models/GFPGANv1.pth --test_path inputs/cropped_faces --save_root results --arch original --channel 1 --aligned
+```
+
+#### v0.2.0
+
+Using <https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth>
+
+```sh
+nvidia-docker run \
+    --name gfpgan \
+    --volume <absolute/path/inputs>:/app/inputs \
+    --volume <absolute/path/results>:/app/results \
     {{ DOCKERHUB_REPOSITORY }}/GFPGAN:latest \
     python3 inference_gfpgan.py --upscale 2 --test_path inputs/whole_imgs --save_root results
 ```
