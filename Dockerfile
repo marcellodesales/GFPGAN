@@ -1,43 +1,30 @@
-FROM nvidia/cuda:10.0-cudnn7-devel
+ARG TENCENT_ARC_BASE_IMAGE
+
+FROM ${TENCENT_ARC_BASE_IMAGE}
 
 ENV BASICSR_JIT=True
-
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y --no-install-recommends --fix-missing \
-    # python
-    python3.8 python3-pip python3-setuptools python3-dev \
-    # OpenCV deps
-    libglib2.0-0 libsm6 libxext6 libxrender1 libgl1-mesa-glx \
-    # c++
-    g++ \
-    # others
-    wget unzip
-
-# Ninja
-RUN wget https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-linux.zip && \
-    unzip ninja-linux.zip -d /usr/local/bin/ && \
-    update-alternatives --install /usr/bin/ninja ninja /usr/local/bin/ninja 1 --force
-
-# basicsr facexlib
-RUN python3 -m pip install --upgrade pip && \
-    pip3 install --no-cache-dir torch>=1.7 opencv-python>=4.5 && \
-    pip3 install --no-cache-dir basicsr facexlib
-
-# weights
-RUN wget https://github.com/TencentARC/GFPGAN/releases/download/v0.2.0/GFPGANCleanv1-NoCE-C2.pth \
-        -P experiments/pretrained_models &&\
-    wget https://github.com/TencentARC/GFPGAN/releases/download/v0.1.0/GFPGANv1.pth \
-        -P experiments/pretrained_models
-
-RUN rm -rf /var/cache/apt/* /var/lib/apt/lists/* && \
-    apt-get autoremove -y && apt-get clean
-
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-COPY . .
-RUN python3 setup.py develop && \
-    pip3 install realesrgan
+# weights
+ARG TRAINING_FILE1
+ENV TRAINING_FILE1 ${TRAINING_FILE1:-v0.2.0/GFPGANCleanv1-NoCE-C2.pth}
+RUN wget https://github.com/TencentARC/GFPGAN/releases/download/${TRAINING_FILE1} -P experiments/pretrained_models
 
-CMD ["python3", "inference_gfpgan.py", "--upscale", "2", "--test_path", "inputs/whole_imgs", "--save_root", "results"]
+ARG TRAINING_FILE2
+ENV TRAINING_FILE2 ${TRAINING_FILE2:-v0.1.0/GFPGANv1.pth}
+RUN wget https://github.com/TencentARC/GFPGAN/releases/download/${TRAINING_FILE2} -P experiments/pretrained_models
+
+# Copy the entire source following the restrictions of .dockerignore
+# Include README if you want to build a library
+COPY . .
+
+# https://stackoverflow.com/questions/19048732/python-setup-py-develop-vs-install/19048754#19048754
+RUN python3 setup.py develop
+RUN pip3 install realesrgan
+
+ENV CUDA_HOME=/usr/local/cuda
+
+RUN pip3 install basicsr
+
+CMD ["python3", "inference_gfpgan.py", "--model_path", "$${GFPGAN_MODEL_PATH}", "--upscale", "$${GFPGAN_UPSCALE}", "--test_path", "$${GFPGAN_TEST_PATH}", "--save_root", "$${GFPGAN_RESULTS_PATH}"]
