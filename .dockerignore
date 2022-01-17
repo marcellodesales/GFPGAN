@@ -21,7 +21,9 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 
-**/*README.md
+# README must be added for python libraries
+# https://stackoverflow.com/questions/29150804/file-openreadme-in-setup-py-isnt-found/29158121#29158121
+# **/*README.md
 **/.github
 **/.gitlab
 **/*.gitlab-ci.yml
