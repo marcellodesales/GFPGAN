@@ -5,4 +5,5 @@ include inference_gfpgan.py
 include VERSION
 include LICENSE
 include requirements.txt
-include gfpgan/weights/README.md
+include README.md
+include LICENSE.txt
