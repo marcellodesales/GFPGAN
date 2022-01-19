@@ -47,6 +47,8 @@ Other recommended projects:<br>
 
 ---
 
+# Development
+
 ## :wrench: Dependencies and Installation
 
 - Python >= 3.7 (Recommend to use [Anaconda](https://www.anaconda.com/download/#linux) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html))
@@ -54,7 +56,7 @@ Other recommended projects:<br>
 - Option: NVIDIA GPU + [CUDA](https://developer.nvidia.com/cuda-downloads)
 - Option: Linux
 
-### Installation
+## Installating from Github
 
 We now provide a *clean* version of GFPGAN, which does not require customized CUDA extensions. <br>
 If you want to use the original model in our paper, please see [PaperModel.md](PaperModel.md) for installation.
@@ -84,6 +86,126 @@ If you want to use the original model in our paper, please see [PaperModel.md](P
     # you also need to install the realesrgan package
     pip install realesrgan
     ```
+
+## Installing using Docker Containers
+
+This version uses an unnofficial version of Cog Server to implement the interfaces for Machine Learning.
+
+The Cog server from replicated https://github.com/replicate/cog that helps running Machine Learning applications using an API server through a well-defined interface.
+
+> **DOCKER IMAGE**
+> * https://hub.docker.com/r/marcellodesales/replicated-cog-server
+> * https://github.com/marcellodesales/replicated-cog-server-docker
+
+### What's included
+
+> **DOCS**: More at https://github.com/replicate/cog/blob/main/docs/getting-started-own-model.md.
+
+There are a few steps to run you Machine Learning model using cog:
+
+* Created the driver `predict.py`
+  * It will define your arguments, their respective types, etc.
+  * You will implement the call to your model library
+  * You will have an interface to return the types such as images, texts, etc.
+* Created the builder `cog.yaml`: It helps describing your dependencies such as system-level, python, and others.
+  * System-dependencies: what needs to be in the container to run your model.
+  * Model dependencies: pypi dependendencies that is part of your implementation. For instance, the correct versions should be properly described.
+  * Pre-install dependencies: Those that are required to be installed after the first ones.
+* Docker Artifacts Dockerfile: You can define your dockerfile with the parent image from this repo
+* Docker-Compose: It helps keeping all the build parameters for the build
+
+### Building
+
+> NOTE: Make sure to have disk space and memory. (15GB)
+> * The first time running it might takes more than 10min depending on your location.
+>   * Subsequent Builds take advantage of Docker Caches when specific layers aren't invalidated
+> * Problem running: "RGPG invalid signature error while running `apt-get update`": running in MacOS you can have errors like disk space, etc. Just make sure you have enough.
+>   * https://stackoverflow.com/questions/64439278/gpg-invalid-signature-error-while-running-apt-update-inside-arm32v7-ubuntu20-04/64553153#64553153
+
+```console
+$ docker-compose build
+Building GFPGAN
+[+] Building 0.2s (18/18) FINISHED
+ => [internal] load build definition from Dockerfile                                                                                                          0
+ => => transferring dockerfile: 674B                                                                                                                          0
+ => [internal] load .dockerignore                                                                                                                             0
+ => => transferring context: 35B                                                                                                                              0
+ => [internal] load metadata for docker.io/marcellodesales/replicated-cog-server:python3.8_nvidea1.11.1                                                       0
+ => [1/3] FROM docker.io/marcellodesales/replicated-cog-server:python3.8_nvidea1.11.1                                                                         0
+ => [internal] load build context                                                                                                                             0
+ => => transferring context: 4.33kB                                                                                                                           0
+ => CACHED [2/3] COPY cog.yaml .                                                                                                                              0
+ => CACHED [3/3] RUN cat cog.yaml | yq e . - -o json | jq -r -c '.build.system_packages[]' | sed -r 's/^([^,]*)(,?)$/ \1 \2/' | tr -d '\n' > cog.pkgs &&      0
+ => CACHED [4/3] RUN apt-get update -qq && apt-get install -qqy $(cat cog.pkgs) &&     rm -rf /var/lib/apt/lists/* # buildkit 85.8MB buildkit.dockerfile.v0   0
+ => CACHED [5/3] RUN cat cog.yaml | yq e . - -o json | jq -r -c '.build.python_packages[]' | sed -r 's/^([^,]*)(,?)$/\1 \2/' | tr -d '\n' > cog.python-pkgs   0
+ => CACHED [6/3] RUN pip install -f https://download.pytorch.org/whl/torch_stable.html $(cat cog.python-pkgs)                                                 0
+ => CACHED [7/3] RUN cat cog.yaml | yq e . - -o json | jq -r -c '.build.pre_install[]' > cog.pre-inst &&     echo "Installing the pre-install packages: $(ca  0
+ => CACHED [8/3] RUN sh cog.pre-inst                                                                                                                          0
+ => CACHED [9/3] WORKDIR /src                                                                                                                                 0
+ => CACHED [10/3] COPY predict.py .                                                                                                                           0
+ => CACHED [11/3] COPY . .                                                                                                                                    0
+ => CACHED [12/3] RUN echo "Downloading training file 'v0.2.0/GFPGANCleanv1-NoCE-C2.pth'" &&     wget https://github.com/TencentARC/GFPGAN/releases/download  0
+ => CACHED [13/3] RUN echo "Downloading training file 'v0.2.0/GFPGANCleanv1-NoCE-C2.pth'" &&     wget https://github.com/TencentARC/GFPGAN/releases/download  0
+ => exporting to image                                                                                                                                        0
+ => => exporting layers                                                                                                                                       0
+ => => writing image sha256:71684982ed27156781c54ef5e2f7d18a110a7aa0e150bfb49b207e1709102ceb                                                                  0
+ => => naming to docker.io/marcellodesales/tencent-arc-gfpgan-runtime                                                                                         0
+```
+
+### Running
+
+You can just create a container in the background.
+
+```console
+$ docker-compose up -d
+Recreating gfpgan_GFPGAN_1 ... done
+```
+
+* You can make sure that the container loaded your app and models...
+
+```console
+$ docker-compose logs -f
+Attaching to gfpgan_GFPGAN_1
+GFPGAN_1  | /root/.pyenv/versions/3.8.12/lib/python3.8/site-packages/torch/cuda/__init__.py:52: UserWarning: CUDA initialization: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx (Triggered internally at  /pytorch/c10/cuda/CUDAFunctions.cpp:100.)
+GFPGAN_1  |   return torch._C._cuda_getDeviceCount() > 0
+GFPGAN_1  | /src/predict.py:41: UserWarning: The unoptimized RealESRGAN is very slow on CPU. We do not use it. If you really want to use it, please modify the corresponding codes.
+GFPGAN_1  |   warnings.warn('The unoptimized RealESRGAN is very slow on CPU. We do not use it. '
+GFPGAN_1  | Downloading: "https://github.com/xinntao/facexlib/releases/download/v0.1.0/detection_Resnet50_Final.pth" to /root/.pyenv/versions/3.8.12/lib/python3.8/site-packages/facexlib/weights/detection_Resnet50_Final.pth
+GFPGAN_1  |
+100%|------| 104M/104M [00:04<00:00, 22.7MB/s]
+GFPGAN_1  |  * Serving Flask app 'http' (lazy loading)
+GFPGAN_1  |  * Environment: production
+GFPGAN_1  |    WARNING: This is a development server. Do not use it in a production deployment.
+GFPGAN_1  |    Use a production WSGI server instead.
+GFPGAN_1  |  * Debug mode: off
+GFPGAN_1  |  * Running on all addresses.
+GFPGAN_1  |    WARNING: This is a development server. Do not use it in a production deployment.
+GFPGAN_1  |  * Running on http://172.19.0.2:5000/ (Press CTRL+C to quit)
+```
+
+### Testing Input: HTTP POST image=PATH
+
+* Choose an image as the input to the service.
+
+> Using [viu](https://github.com/atanunq/viu) to open the image on terminal
+
+![Screen Shot 2022-01-18 at 1 56 22 PM](https://user-images.githubusercontent.com/131457/150036554-da9e637b-1b3f-4950-ae18-4b8d236e113e.png)
+
+* Execute the Machine Learning service using the interface built by cog, which exposes the user-defined parameters.
+  * In this example, `image` is a parameter
+
+```console
+$ curl http://localhost:5000/predict -X POST -F image=@$(pwd)/inputs/whole_imgs/Blake_Lively.jpg -o $(pwd)/super.jpg
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 2087k  100 1996k  100 93345   276k  12943  0:00:07  0:00:07 --:--:--  499k
+```
+
+### Testing Output
+
+> Using [viu](https://github.com/atanunq/viu) to open the image on terminal
+
+![Screen Shot 2022-01-18 at 1 56 17 PM](https://user-images.githubusercontent.com/131457/150036575-7f60da84-b89e-4a1a-abcd-084472cebf80.png)
 
 ## :zap: Quick Inference
 
