@@ -18,7 +18,8 @@ def main():
     parser.add_argument('--channel', type=int, default=2, help='Channel multiplier for large networks of StyleGAN2')
     parser.add_argument('--model_path', type=str, default='experiments/pretrained_models/GFPGANCleanv1-NoCE-C2.pth')
     parser.add_argument('--bg_upsampler', type=str, default='realesrgan', help='background upsampler')
-    parser.add_argument('--bg_tile', type=int, default=400, help='Tile size for background sampler, 0 for no tile during testing')
+    parser.add_argument(
+        '--bg_tile', type=int, default=400, help='Tile size for background sampler, 0 for no tile during testing')
     parser.add_argument('--test_path', type=str, default='inputs/whole_imgs', help='Input folder')
     parser.add_argument('--suffix', type=str, default=None, help='Suffix of the restored faces')
     parser.add_argument('--only_center_face', action='store_true', help='Only restore the center face')

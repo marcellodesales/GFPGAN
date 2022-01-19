@@ -12,7 +12,6 @@ from basicsr.utils import imwrite
 import torch
 from gfpgan import GFPGANer
 import glob
-import numpy as np
 
 
 class Predictor(cog.Predictor):
@@ -82,7 +81,10 @@ class Predictor(cog.Predictor):
             input_img = cv2.imread(img_path, cv2.IMREAD_COLOR)
 
             cropped_faces, restored_faces, restored_img = self.restorer.enhance(
-                input_img, has_aligned=self.args.aligned, only_center_face=self.args.only_center_face, paste_back=self.args.paste_back)
+                input_img, has_aligned=self.args.aligned,
+                only_center_face=self.args.only_center_face,
+                paste_back=self.args.paste_back
+            )
 
             # save faces
             for idx, (cropped_face, restored_face) in enumerate(zip(cropped_faces, restored_faces)):
@@ -97,11 +99,12 @@ class Predictor(cog.Predictor):
                 save_restore_path = os.path.join(self.args.save_root, 'restored_faces', save_face_name)
                 imwrite(restored_face, save_restore_path)
                 # save cmp image
-                cmp_img = np.concatenate((cropped_face, restored_face), axis=1)
+                # cmp_img = np.concatenate((cropped_face, restored_face), axis=1)
                 imwrite(restored_img, str(out_path))
                 clean_folder(self.args.test_path)
 
         return out_path
+
 
 def clean_folder(folder):
     for filename in os.listdir(folder):
