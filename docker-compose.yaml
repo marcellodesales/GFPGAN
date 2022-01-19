@@ -11,7 +11,7 @@ services:
     build:
       context: .
       args:
-        TENCENT_ARC_BASE_IMAGE: marcellodesales/replicated-cog-server:python3.8_nvidea1.11.1
+        TENCENT_ARC_BASE_IMAGE: marcellodesales/replicated-cog-server:master-d499168
         TRAINING_FILE1: v0.2.0/GFPGANCleanv1-NoCE-C2.pth
         TRAINING_FILE2: v0.1.0/GFPGANv1.pth
     #environment:
