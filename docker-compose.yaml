@@ -1,5 +1,9 @@
 version: "3.8"
 
+###
+### Running in MacOS
+### https://stackoverflow.com/questions/64439278/gpg-invalid-signature-error-while-running-apt-update-inside-arm32v7-ubuntu20-04/64553153#64553153
+###
 services:
 
   GFPGAN:
@@ -7,15 +11,16 @@ services:
     build:
       context: .
       args:
-        TENCENT_ARC_BASE_IMAGE: marcellodesales/ubuntu-python-ninja
+        TENCENT_ARC_BASE_IMAGE: marcellodesales/replicated-cog-server:python3.8_nvidea1.11.1
         TRAINING_FILE1: v0.2.0/GFPGANCleanv1-NoCE-C2.pth
         TRAINING_FILE2: v0.1.0/GFPGANv1.pth
-    environment:
-      GFPGAN_UPSCALE: 2
-      GFPGAN_MODEL_PATH: /app/experiments/pretrained_models/GFPGANCleanv1-NoCE-C2.pth
-      GFPGAN_TEST_PATH: /app/inputs/cropped_faces
-      GFPGAN_RESULTS_PATH: /app/results
-    volumes:
-      - ./build/experiments:/app/experiments
-      - ./build/inputs:/app/inputs 
-      - ./build/results:/app/results
+    #environment:
+    #  GFPGAN_UPSCALE: 2
+    #  GFPGAN_MODEL_PATH: /app/experiments/pretrained_models/GFPGANCleanv1-NoCE-C2.pth
+    #  GFPGAN_TEST_PATH: /app/inputs/cropped_faces
+    #  GFPGAN_RESULTS_PATH: /app/results
+    #volumes:
+    #  - ./build/experiments:/app/experiments
+    #  - ./build/inputs:/app/inputs 
+    #  - ./build/results:/app/results
+    #  - .:/app/src
